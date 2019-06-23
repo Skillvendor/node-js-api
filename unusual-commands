@@ -1,0 +1,1 @@
+node_modules/.bin/sequelize to run any sequelize command (even though it is installed globally for now this is the only way to run commands)

@@ -1,7 +1,6 @@
 const express = require('express');
 const feedRoutes = require('./routes/feed');
 const app = express();
-const sequelize = require('./util/database');
 
 app.use(express.json());
 
