@@ -1,4 +1,6 @@
 const { validationResult } = require("express-validator")
+const models = require('../models/index')
+const User = models.User
 
 exports.getPosts = (req, res, next) => {
   res.status(200).json({
@@ -25,15 +27,21 @@ exports.createPosts = (req, res, next) => {
   } = req.body
 
   //Create in db later
-
-  res.status(201).json({
-    post: {
-      id: '1',
+  User.findByPk(1)
+  .then( user => {
+    console.log(user);
+    user.createPost({
       title: title,
       content: content,
-    },
-    metadata: {
-      message: 'Post was created',
-    },
+    })
+    .then ( post => {console.log(post); res.status(201).json(post)})
+    .catch ( err => console.log(err))
   })
+  .catch ( err => console.log(err) )
+  // createPosts([{
+  //   title: title,
+  //   content: content,
+  // }])
+  // .then ( post => {console.log(post); res.status(201).json(post)})
+  // .catch ( err => console.log(err))
 }
