@@ -3,23 +3,56 @@ const models = require('../models/index')
 const User = models.User
 
 exports.getPosts = (req, res, next) => {
-  res.status(200).json({
-    posts: [
-      {
-        title: 'First post',
-        content: 'My awesome text',
-      }
-    ]
+  const userId = req.userId
+  User.findByPk(userId)
+  .then( user => {
+    user.getPosts()
+    .then( posts => {
+      res.status(200).json(posts)
+    })
+    .catch ( err => {
+      err.statusCode = 500
+      err.errorArray = []
+      next(err)
+    })
+  })
+  .catch ( err => {
+    err.statusCode = 500
+    err.errorArray = []
+    next(err)
+  })
+}
+
+exports.getPost = (req, res, next) => {
+  const postId = req.params.id
+  const userId = req.userId
+  //Create in db later
+  User.findByPk(userId)
+  .then( user => {
+    user.getPosts({ where: {id: postId }})
+    .then( post => {
+      res.status(200).json(post)
+    })
+    .catch ( err => {
+      err.statusCode = 500
+      err.errorArray = []
+      next(err)
+    })
+  })
+  .catch ( err => {
+    err.statusCode = 500
+    err.errorArray = []
+    next(err)
   })
 }
 
 exports.createPosts = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(422).json({
-      message: 'Validation Failed',
-      errors: errors.array(),
-    })
+    const error = new Error('Validation Failed')
+    error.statusCode = 422
+    error.errorArray = errors.array()
+    throw error
   }
   const {
     title,
@@ -27,21 +60,23 @@ exports.createPosts = (req, res, next) => {
   } = req.body
 
   //Create in db later
-  User.findByPk(1)
+  const userId = req.userId
+  User.findByPk(userId)
   .then( user => {
-    console.log(user);
     user.createPost({
       title: title,
       content: content,
     })
-    .then ( post => {console.log(post); res.status(201).json(post)})
-    .catch ( err => console.log(err))
+    .then ( post => { res.status(201).json(post)})
+    .catch ( err => {
+      err.statusCode = 500
+      err.errorArray = []
+      next(err)
+    })
   })
-  .catch ( err => console.log(err) )
-  // createPosts([{
-  //   title: title,
-  //   content: content,
-  // }])
-  // .then ( post => {console.log(post); res.status(201).json(post)})
-  // .catch ( err => console.log(err))
+  .catch ( err => {
+    err.statusCode = 500
+    err.errorArray = []
+    next(err)
+  } )
 }
