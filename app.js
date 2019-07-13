@@ -15,7 +15,14 @@ app.use((req, res, next) => {
 
 app.use('/graphql', graphqlHttp({
   schema: graphqlSchema,
-  rootValue: graphqlResolvers
+  rootValue: graphqlResolvers,
+  graphiql: true,
+  formatError(err) {
+    if(!err.originalError) {
+      return err
+    }
+    return err.originalError
+  }
 }))
 
 app.use((error, req, res, next) => {
