@@ -1,7 +1,8 @@
 const express = require('express');
-const feedRoutes = require('./routes/feed');
-const authRoutes = require('./routes/auth');
 const app = express();
+const graphqlHttp = require('express-graphql')
+const graphqlSchema = require('./graphql/schema')
+const graphqlResolvers = require('./graphql/resolvers')
 
 app.use(express.json());
 
@@ -12,8 +13,10 @@ app.use((req, res, next) => {
   next();
 })
 
-app.use('/feed', feedRoutes)
-app.use('/auth', authRoutes)
+app.use('/graphql', graphqlHttp({
+  schema: graphqlSchema,
+  rootValue: graphqlResolvers
+}))
 
 app.use((error, req, res, next) => {
   console.log(error)
