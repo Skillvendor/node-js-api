@@ -1,6 +1,7 @@
 const models = require('../models/index')
 const User = models.User
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 const validator = require('validator')
 
 module.exports = {
@@ -32,7 +33,7 @@ module.exports = {
       throw error
     }
 
-    const existingUser = await User.findOne({ where: {email: email} })
+    const existingUser = await User.findOne({ where: { email: email }})
     if (existingUser) {
       const error = new Error('User already exists')
       error.statusCode = 422
@@ -48,5 +49,41 @@ module.exports = {
 
     const createdUser = await user.save()
     return createdUser
+  },
+  logIn: async function( { logInInput }){
+    const {
+      email,
+      password
+    } = logInInput
+
+    const user = await User.findOne({ where: { email: email }})
+    if (!user) {
+      const error = new Error('User not found')
+      error.statusCode = 401
+      error.errorArray = []
+      throw error
+    }
+
+    const passIsEqual = await bcrypt.compare(password, user.password)
+    if(!passIsEqual) {
+      const error = new Error('Password is invalid')
+      error.statusCode = 401
+      error.errorArray = []
+      throw error
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email
+      },
+      'super-secret',
+      { expiresIn: '1h' }
+    )
+
+    return {
+      user: user,
+      token: token
+    }
   }
 }
