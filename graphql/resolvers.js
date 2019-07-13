@@ -126,5 +126,22 @@ module.exports = {
     const post = await user.createPost({ title, content})
 
     return post
+  },
+  posts: async function(args, req) {
+    if(!req.isAuth) {
+      const error = new Error('Not Authenticated')
+      error.statusCode = 401
+      error.errorArray = []
+      throw error
+    }
+
+    const userId = req.userId
+    const user = await User.findByPk(userId)
+    const posts = await user.getPosts()
+
+    return {
+      posts: posts,
+      totalPosts: posts.length
+    }
   }
 }
