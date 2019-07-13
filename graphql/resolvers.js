@@ -1,5 +1,6 @@
 const models = require('../models/index')
 const User = models.User
+const Post = models.Post
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const validator = require('validator')
@@ -19,7 +20,7 @@ module.exports = {
         model: 'user'
       })
     }
-    if(validator.isEmpty(password) || validator.isLength(password, { min: 4 })) {
+    if(validator.isEmpty(password) || !validator.isLength(password, { min: 4 })) {
       errors.push({
         field: 'password',
         message: 'Password should have more than 4 chars',
@@ -85,5 +86,45 @@ module.exports = {
       user: user,
       token: token
     }
+  },
+  createPost: async function({ postInput }, req) {
+    if(!req.isAuth) {
+      const error = new Error('Not Authenticated')
+      error.statusCode = 401
+      error.errorArray = []
+      throw error
+    }
+    const {
+      title,
+      content
+    } = postInput
+
+    const errors = []
+    if(validator.isEmpty(title) || !validator.isLength(title, { min: 4 })) {
+      errors.push({
+        field: 'title',
+        message: 'Title should have more than 4 chars',
+        model: 'post'
+      })
+    }
+    if(validator.isEmpty(content) || !validator.isLength(content, { min: 10 })) {
+      errors.push({
+        field: 'content',
+        message: 'content should have more than 10 chars',
+        model: 'post'
+      })
+    }
+    console.log(validator.isLength(title, { min: 4 }))
+    if(errors.length > 0) {
+      const error = new Error('Invalid input')
+      error.statusCode = 422
+      error.errorArray = errors
+      throw error
+    }
+    const userId = req.userId
+    const user = await User.findByPk(userId)
+    const post = await user.createPost({ title, content})
+
+    return post
   }
 }

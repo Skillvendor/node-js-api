@@ -29,7 +29,7 @@ exports.getPost = (req, res, next) => {
   //Create in db later
   User.findByPk(userId)
   .then( user => {
-    user.getPosts({ where: {id: postId }})
+    user.getPosts({ where: { id: postId }})
     .then( post => {
       res.status(200).json(post)
     })

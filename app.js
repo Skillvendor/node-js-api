@@ -3,6 +3,7 @@ const app = express();
 const graphqlHttp = require('express-graphql')
 const graphqlSchema = require('./graphql/schema')
 const graphqlResolvers = require('./graphql/resolvers')
+const auth = require('./middleware/auth')
 
 app.use(express.json());
 
@@ -16,6 +17,8 @@ app.use((req, res, next) => {
   next();
 })
 
+app.use(auth)
+
 app.use('/graphql', graphqlHttp({
   schema: graphqlSchema,
   rootValue: graphqlResolvers,
@@ -24,7 +27,7 @@ app.use('/graphql', graphqlHttp({
     if(!err.originalError) {
       return err
     }
-    return err.originalError
+    return {message: err.message, data: err.originalError }
   }
 }))
 
