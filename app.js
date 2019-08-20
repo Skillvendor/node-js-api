@@ -1,7 +1,9 @@
 const express = require('express');
-const feedRoutes = require('./routes/feed');
-const authRoutes = require('./routes/auth');
 const app = express();
+const graphqlHttp = require('express-graphql')
+const graphqlSchema = require('./graphql/schema')
+const graphqlResolvers = require('./graphql/resolvers')
+const auth = require('./middleware/auth')
 
 app.use(express.json());
 
@@ -9,11 +11,25 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', '*')
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200)
+  }
   next();
 })
 
-app.use('/feed', feedRoutes)
-app.use('/auth', authRoutes)
+app.use(auth)
+
+app.use('/graphql', graphqlHttp({
+  schema: graphqlSchema,
+  rootValue: graphqlResolvers,
+  graphiql: true,
+  formatError(err) {
+    if(!err.originalError) {
+      return err
+    }
+    return {message: err.message, data: err.originalError }
+  }
+}))
 
 app.use((error, req, res, next) => {
   console.log(error)
